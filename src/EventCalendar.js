@@ -13,6 +13,7 @@ import React from 'react'
 import styleConstructor from './style'
 
 import DayView from './DayView'
+import Ionicons from "react-native-vector-icons/Ionicons";
 
 export default class EventCalendar extends React.Component {
   constructor(props) {
@@ -40,27 +41,36 @@ export default class EventCalendar extends React.Component {
     return _.filter(events, event => {
       const eventStartTime = moment(event.start)
       return eventStartTime >= date.clone().startOf('day') &&
-        eventStartTime <= date.clone().endOf('day')
+          eventStartTime <= date.clone().endOf('day')
     })
   }
 
   _renderItem({ index, item }) {
-    const { width, format24h, initDate, scrollToFirst } = this.props
+    const { width, format24h, initDate, scrollToFirst, start, end } = this.props
     const date = moment(initDate).add(index - this.props.size, 'days')
     return (
-      <DayView
-        date={date}
-        index={index}
-        format24h={format24h}
-        formatHeader={this.props.formatHeader}
-        headerStyle={this.props.headerStyle}
-        renderEvent={this.props.renderEvent}
-        eventTapped={this.props.eventTapped}
-        events={item}
-        width={width}
-        styles={this.styles}
-        scrollToFirst={scrollToFirst}
-      />
+        <DayView
+            date={date}
+            index={index}
+            format24h={format24h}
+            start={start}
+            end={end}
+            formatHeader={this.props.formatHeader}
+            headerStyle={this.props.headerStyle}
+            renderEvent={this.props.renderEvent}
+            eventTapped={this.props.eventTapped}
+            events={item}
+            width={width}
+            styles={this.styles}
+            // styles={{
+            //   ...this.styles,
+            //   contentStyle: {
+            //     backgroundColor: '#ffff',
+            //     height: ((end-start)*100) + 10
+            //   },
+            // }}
+            scrollToFirst={scrollToFirst}
+        />
     )
   }
 
@@ -82,38 +92,53 @@ export default class EventCalendar extends React.Component {
       formatHeader
     } = this.props
     return (
-      <View style={[this.styles.container, { width }]}>
-        <View style={this.styles.header}>
-          <TouchableOpacity onPress={() => this._goToPage(this.state.index - 1)}>
-            <Image source={require('./back.png')} style={this.styles.arrow} />
-          </TouchableOpacity>
-          <Text style={this.styles.headerText}>{this.state.date.format(formatHeader || 'DD MMMM YYYY')}</Text>
-          <TouchableOpacity onPress={() => this._goToPage(this.state.index + 1)}>
-            <Image source={require('./forward.png')} style={this.styles.arrow} />
-          </TouchableOpacity>
+        <View style={[this.styles.container, { width }]}>
+          <View style={this.styles.header}>
+            <TouchableOpacity
+                style={{
+                  padding: 20,
+                  paddingVertical: 10,
+                }}
+                onPress={() => this._goToPage(this.state.index - 1)}
+            >
+              <Ionicons name={'arrow-back'} size={25} color={'gray'} />
+              {/*<Image source={require('./back.png')} style={this.styles.arrow} />*/}
+            </TouchableOpacity>
+            <Text style={this.styles.headerText}>{this.state.date.format(formatHeader || 'DD MMMM YYYY')}</Text>
+            <TouchableOpacity
+                style={{
+                  padding: 20,
+                  paddingVertical: 10,
+                }}
+                onPress={() => this._goToPage(this.state.index + 1)}
+            >
+              <Ionicons name={'arrow-forward'} size={25} color={'gray'} />
+              {/*<Image source={require('./back.png')} style={this.styles.arrow} />*/}
+            </TouchableOpacity>
+          </View>
+          <VirtualizedList
+              ref='calendar'
+              windowSize={2}
+              initialNumToRender={2}
+              initialScrollIndex={this.props.size}
+              data={events}
+              getItemCount={() => this.props.size * 2}
+              getItem={this._getItem.bind(this)}
+              keyExtractor={(item, index) => index}
+              getItemLayout={this._getItemLayout.bind(this)}
+              horizontal
+              pagingEnabled
+              scrollEnabled={this.props.scrollEnabled}
+              renderItem={this._renderItem.bind(this)}
+              style={{ width: width }}
+              onMomentumScrollEnd={(event) => {
+                const index = parseInt(event.nativeEvent.contentOffset.x / width)
+                const date = moment(this.props.initDate).add(index - this.props.size, 'days')
+                this.setState({ index, date })
+              }}
+              {...virtualizedListProps}
+          />
         </View>
-        <VirtualizedList
-          ref='calendar'
-          windowSize={2}
-          initialNumToRender={2}
-          initialScrollIndex={this.props.size}
-          data={events}
-          getItemCount={() => this.props.size * 2}
-          getItem={this._getItem.bind(this)}
-          keyExtractor={(item, index) => index}
-          getItemLayout={this._getItemLayout.bind(this)}
-          horizontal
-          pagingEnabled
-          renderItem={this._renderItem.bind(this)}
-          style={{ width: width }}
-          onMomentumScrollEnd={(event) => {
-            const index = parseInt(event.nativeEvent.contentOffset.x / width)
-            const date = moment(this.props.initDate).add(index - this.props.size, 'days')
-            this.setState({ index, date })
-          }}
-          {...virtualizedListProps}
-        />
-      </View>
 
     )
   }
