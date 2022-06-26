@@ -6,7 +6,7 @@ const calendarHeight = 2400
 const leftMargin = 50 - 1
 
 export default function styleConstructor (
-  theme = {}
+    theme = {}
 ) {
   let style = {
     container: {
@@ -19,8 +19,8 @@ export default function styleConstructor (
       height: calendarHeight + 10
     },
     header: {
-      paddingHorizontal: 30,
-      height: 50,
+      paddingHorizontal: 0,
+      // height: 50,
       borderTopWidth: 1,
       borderBottomWidth: 1,
       borderColor: '#E6E8F0',
